@@ -1,107 +1,117 @@
-# Dia 1
+README.md — Datadog Week – Dia 1 e 2
+🧪 Ambiente Local com Kind + Helm + Datadog Agent
+📦 Aplicação:
+Spree E-commerce com microserviços em YAML:
 
-> ## Pre-requisitos
->
-> ### Conta na Datadog - Conta TRIAL ou Learning Center
-> 
-> Acesse [DatadogHQ](https://www.datadoghq.com/) e clique em **FREE TRIAL** cadastre-se ou
-> 
-> Acesse [Learning Center Datadog](https://learn.datadoghq.com/users/sign_in) clique em **Create a new account** e acesse um lab disponível para estudo e a própria Datadog gerará uma conta temporária para você se divertir
-> 
-> Se ficar na dúvida assista o video [Youtube](https://youtu.be/OO3lVsqf_44?si=C7Xiu8_2AODzhvyw)
-> 
-> ### Kubernetes para executar a aplicação
-> 
-> Acesse [Kubernetes playgrounds](https://killercoda.com/playgrounds/scenario/kubernetes)
-> Observação:
-> 
-> No killercoda se deixar o cluster lab numa aba sem ativida o mesmo pode ser encerrado
->
+advertisements
 
->**💡NOTA**
->
->Os arquivo dentros do diretório ***spree-ecommerce*** é o resultado das alterações ao final do Dia 1. Dúvidas após o 1º dia consulte esses arquivos
+discounts
 
+frontend
 
-## 1º passo - Para subir a aplicação sem alteração
+db (PostgreSQL)
 
-Clone o repositório e acesse o diretório ***maratona-datadog*** e suba a aplicação
-```bash
+⚙️ Passos realizados:
+Criação do cluster Kubernetes local:
+
+bash
+Copiar
+Editar
+kind create cluster
+Aplicação da stack:
+
+bash
+Copiar
+Editar
 kubectl apply -f spree-ecommerce/
-```
+Instalação do Helm:
 
-## 2º Passo - Instalação de repositórios
+bash
+Copiar
+Editar
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+Adição do repositório Datadog e atualização:
 
-Agora, adicione o repositório helm da Datadog
-
-```bash
+bash
+Copiar
+Editar
 helm repo add datadog https://helm.datadoghq.com
-```
-
-Atualize
-
-```bash
 helm repo update
-```
+Criação do Secret com a API Key:
 
-Antes de subir o agente no cluster, vamos criar um secrets Datadog em um comando
+bash
+Copiar
+Editar
+kubectl create secret generic datadog-secret --from-literal api-key=<SUA_API_KEY>
+Criação do values.yaml personalizado para Kind:
 
-```bash
-kubectl create secret generic datadog-secret --from-literal api-key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+yaml
+Copiar
+Editar
+datadog:
+  site: datadoghq.com
+  apiKeyExistingSecret: datadog-secret
+  clusterName: datadog-week
+  tags:
+    - app:ecommerce
+    - project:datadog-week
+    - team:sre
+    - env:prd
+  logs:
+    enabled: true
+    containerCollectAll: true
+  apm:
+    portEnabled: true
+  processAgent:
+    enabled: true
+    processCollection: true
+  kubelet:
+    tlsVerify: false
+clusterAgent:
+  enabled: true
+  createPodDisruptionBudget: true
+Instalação do agente Datadog:
 
-## 3º Instalando Datadog Agent com values.yaml
-
-Baixe o arquivo completo link [datadog-values.yaml](https://github.com/DataDog/helm-charts/blob/main/charts/datadog/values.yaml)
-
-* Parametros alterarados
-
-    ```bash
-    # Paramentros importantes
-    datadog.apiKeyExistingSecret ## linha 105
-    datadog.clusterName ## linha 105
-    datadog.site ## linha 116
-    datadog.tags ## linha 285
-    datadog.kubelet.tlsVerify ## linha 304
-    datadog.logs.enabled ## linha 458
-    datadog.logs.containerCollectAll ## linha 463
-    datadog.apm ## linha 479
-    datadog.apm.portEnabled ## linha 483
-    datadog.processAgent.enabled ## linha 727
-    datadog.processAgent.processCollection ## linha 735
-    clusterAgent.replicas ## linha 1175
-    clusterAgent.createPodDisruptionBudget ## linha 1532
-    ```
-
-Execute o comando abaixo para atualizar o agent
-
-```bash
+bash
+Copiar
+Editar
 helm install datadog-agent -f values.yaml datadog/datadog
-```
+✅ Validações:
+Host kind-control-plane-datadog-week reconhecido na Datadog
 
-## 4º Passo - Incrementando o monitoramento no PostgreSql Integrações 
+Métricas visíveis: CPU, memória, disco, rede
 
-### Esse passo por questões tecnicas da live será apresentedo no Dia-2
+Aplicação monitorada com logs, processos, APM
 
-No arquivo db.yaml altere as ```anotations``` adicionando o seguinte em ```template``` para monitorar o Postgresql.
+PostgreSQL integrado com check personalizado via annotation
 
-```bash
-      annotations:
-        ad.datadoghq.com/postgres.checks: |
+🧩 Integração com PostgreSQL:
+Trecho adicionado no spree-ecommerce/db.yaml:
+
+yaml
+Copiar
+Editar
+annotations:
+  ad.datadoghq.com/postgres.checks: |
+    {
+      "postgres": {
+        "instances": [
           {
-            "postgres": {
-              "instances": [
-                {
-                  "host": "%%host%%",
-                  "port":"5432",
-                  "username":"user",
-                  "password":"datadog"
-                }
-              ]
-            }
+            "host": "%%host%%",
+            "port":"5432",
+            "username":"user",
+            "password":"datadog"
           }
-```
+        ]
+      }
+    }
+📊 Próximo passo sugerido:
+✅ Criar dashboard PostgreSQL personalizado com:
 
-Re-deploy o banco Postgresql
+Conexões ativas
 
-**FIM DO DIA 1**
+Queries por segundo
+
+Locks/deadlocks
+
+Tempo médio de resposta
