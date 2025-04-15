@@ -1,49 +1,57 @@
-README.md — Datadog Week – Dia 1 e 2
-🧪 Ambiente Local com Kind + Helm + Datadog Agent
-📦 Aplicação:
-Spree E-commerce com microserviços em YAML:
+# 📅 Dia 1 e 2 – Datadog Week – LinuxTips
 
-advertisements
+Documentação referente aos dois primeiros dias da maratona **Datadog Week** promovida pela [LinuxTips](https://www.youtube.com/c/LinuxTips).  
+Data da execução: **14/04/2025**
 
-discounts
+## 🧰 Tecnologias e Ferramentas Utilizadas
 
-frontend
+- `Kind` (Kubernetes in Docker)
+- `kubectl`
+- `Helm`
+- `Datadog Agent + Cluster Agent`
+- `PostgreSQL` via container
+- `Spree E-commerce` (aplicação de exemplo em microserviços)
 
-db (PostgreSQL)
+---
 
-⚙️ Passos realizados:
-Criação do cluster Kubernetes local:
+## 🏗️ Estrutura do Projeto
 
-bash
+datadog-week/ └── Dia-1/ ├── spree-ecommerce/ │ ├── advertisements.yaml │ ├── discounts.yaml │ ├── frontend.yaml │ ├── db.yaml ├── values.yaml └── Readme.md
+
+yaml
 Copiar
 Editar
-kind create cluster
-Aplicação da stack:
 
+---
+
+## ⚙️ Passo a Passo Executado
+
+### 1. Criação do cluster local com Kind
+```bash
+kind create cluster
+2. Deploy da aplicação Spree
 bash
 Copiar
 Editar
 kubectl apply -f spree-ecommerce/
-Instalação do Helm:
-
+3. Instalação do Helm
 bash
 Copiar
 Editar
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-Adição do repositório Datadog e atualização:
-
+4. Adição do repositório do Datadog
 bash
 Copiar
 Editar
 helm repo add datadog https://helm.datadoghq.com
 helm repo update
-Criação do Secret com a API Key:
-
+5. Criação do Secret com API key do Datadog
 bash
 Copiar
 Editar
 kubectl create secret generic datadog-secret --from-literal api-key=<SUA_API_KEY>
-Criação do values.yaml personalizado para Kind:
+6. Criação do arquivo values.yaml
+Arquivo customizado para executar o agente no ambiente Kind:
 
 yaml
 Copiar
@@ -67,26 +75,21 @@ datadog:
     processCollection: true
   kubelet:
     tlsVerify: false
+
 clusterAgent:
   enabled: true
   createPodDisruptionBudget: true
-Instalação do agente Datadog:
-
+7. Instalação do agente Datadog com Helm
 bash
 Copiar
 Editar
 helm install datadog-agent -f values.yaml datadog/datadog
-✅ Validações:
-Host kind-control-plane-datadog-week reconhecido na Datadog
+✅ Validações realizadas
+ Host kind-control-plane listado como ativo no Datadog
 
-Métricas visíveis: CPU, memória, disco, rede
+ Logs de containers disponíveis
 
-Aplicação monitorada com logs, processos, APM
-
-PostgreSQL integrado com check personalizado via annotation
-
-🧩 Integração com PostgreSQL:
-Trecho adicionado no spree-ecommerce/db.yaml:
+ Monitoramento de PostgreSQL via annotations:
 
 yaml
 Copiar
@@ -105,13 +108,33 @@ annotations:
         ]
       }
     }
-📊 Próximo passo sugerido:
-✅ Criar dashboard PostgreSQL personalizado com:
+ APM ativado
+
+ Métricas exibidas no dashboard customizado:
 
 Conexões ativas
 
-Queries por segundo
+Deadlocks
 
-Locks/deadlocks
+Buffers hit/s
 
-Tempo médio de resposta
+Rows returned/s
+
+CPU user/system
+
+📊 Dashboard criado
+Nome: Dashboard PostgreSQL Personalizado
+
+Widgets incluídos:
+
+Query Value: postgresql.connections
+
+Query Value: postgresql.deadlocks
+
+Query Value: buffer_hit
+
+Query Value: rows_returned
+
+Timeseries: system.cpu.user
+
+Query Value: bgwriter.checkpoints_req
